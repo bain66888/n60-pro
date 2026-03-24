@@ -1,24 +1,55 @@
 #!/bin/sh
 
-# 主WiFi（高性能）
+# 清空所有 WiFi 接口（最稳写法）
 
-uci set wireless.@wifi-iface[0].ssid='Home-5G'
-uci set wireless.@wifi-iface[0].encryption='sae-mixed'
+while uci -q delete wireless.@wifi-iface[0]; do :; done
 
-# IoT WiFi（门锁专用）
+# ======================
+
+# 5G 主WiFi（性能）
+
+# ======================
+
+uci add wireless wifi-iface
+uci set wireless.@wifi-iface[-1].device='radio1'
+uci set wireless.@wifi-iface[-1].mode='ap'
+uci set wireless.@wifi-iface[-1].ssid='AAAA_5G'
+uci set wireless.@wifi-iface[-1].encryption='sae-mixed'
+uci set wireless.@wifi-iface[-1].key='12345678'
+uci set wireless.@wifi-iface[-1].network='lan'
+
+# 5G 优化
+
+uci set wireless.radio1.country='CN'
+uci set wireless.radio1.htmode='HE160'
+
+# ======================
+
+# 2.4G IoT WiFi（门锁专用）
+
+# ======================
 
 uci add wireless wifi-iface
 uci set wireless.@wifi-iface[-1].device='radio0'
 uci set wireless.@wifi-iface[-1].mode='ap'
-uci set wireless.@wifi-iface[-1].ssid='Home-IoT'
+uci set wireless.@wifi-iface[-1].ssid='AAAA'
 uci set wireless.@wifi-iface[-1].encryption='psk2'
 uci set wireless.@wifi-iface[-1].key='12345678'
+uci set wireless.@wifi-iface[-1].network='lan'
+
+# IoT 兼容优化（关键）
+
 uci set wireless.@wifi-iface[-1].ieee80211w='0'
+uci set wireless.@wifi-iface[-1].disassoc_low_ack='0'
 
-# 强制兼容模式（关键）
+# 2.4G 强制兼容模式
 
+uci set wireless.radio0.country='CN'
 uci set wireless.radio0.htmode='HT20'
 uci set wireless.radio0.hwmode='11g'
+uci set wireless.radio0.channel='11'
+
+# 应用
 
 uci commit wireless
 wifi reload

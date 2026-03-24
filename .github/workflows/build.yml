@@ -10,6 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 🔥 释放磁盘空间（关键）
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/lib/android
+
       - name: Install dependencies
         run: |
           sudo apt update
@@ -47,12 +54,13 @@ jobs:
       - name: Download
         run: |
           cd openwrt
-          make download -j8
+          make download -j4
 
+      # 🔥 核心优化
       - name: Compile
         run: |
           cd openwrt
-          make -j$(nproc)
+          make -j2 || make -j1 V=s
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4

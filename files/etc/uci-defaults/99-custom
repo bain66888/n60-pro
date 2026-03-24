@@ -38,7 +38,4 @@ uci set wireless.radio0.wmm=1
 # 提交配置
 uci commit wireless
 
-# ⚠️ 不要在编译时执行 wifi reload
-# wifi reload 只在刷机后运行
-
 exit 0

@@ -1,21 +1,42 @@
 #!/bin/sh
 
 # =============================
-# 5G 主 WiFi（高速 HE160）
+# 清理默认 WiFi（避免多SSID）
 # =============================
-uci delete wireless.@wifi-iface[0]  # 删除默认接口
+uci -q delete wireless.@wifi-iface[0]
+uci -q delete wireless.@wifi-iface[0]
+
+# =============================
+# 5G 主 WiFi（性能 + 穿墙）
+# =============================
 uci add wireless wifi-iface
 uci set wireless.@wifi-iface[-1].device='radio1'
 uci set wireless.@wifi-iface[-1].mode='ap'
 uci set wireless.@wifi-iface[-1].ssid='AAAA_5G'
 uci set wireless.@wifi-iface[-1].encryption='sae-mixed'
 uci set wireless.@wifi-iface[-1].key='12345678'
-uci set wireless.radio1.htmode='HE160'
+
+# 基础
 uci set wireless.radio1.country='CN'
-uci set wireless.radio1.vht_highest=1
-uci set wireless.radio1.txpower=20
-uci set wireless.radio1.ampdu=1
-uci set wireless.radio1.wmm=1
+uci set wireless.radio1.channel='36'          # 🔥 固定信道（必须）
+uci set wireless.radio1.htmode='HE160'
+
+# 性能
+uci set wireless.radio1.txpower='23'          # ⚠️ 建议22（比23更稳）
+uci set wireless.radio1.vht_highest='1'
+uci set wireless.radio1.ampdu='1'
+uci set wireless.radio1.wmm='1'
+
+# 穿墙增强
+uci set wireless.radio1.beacon_int='100'
+uci set wireless.radio1.distance='30'
+
+# 237核心
+uci set wireless.radio1.txbf='1'
+uci set wireless.radio1.mu_mimo='1'
+
+# 抗干扰（配合自动信道脚本）
+uci set wireless.radio1.noscan='1'
 
 # =============================
 # 2.4G IoT WiFi（门锁专用）
@@ -26,16 +47,31 @@ uci set wireless.@wifi-iface[-1].mode='ap'
 uci set wireless.@wifi-iface[-1].ssid='AAAA'
 uci set wireless.@wifi-iface[-1].encryption='psk2'
 uci set wireless.@wifi-iface[-1].key='12345678'
+
+# IoT关键
 uci set wireless.@wifi-iface[-1].ieee80211w='0'
 uci set wireless.@wifi-iface[-1].disassoc_low_ack='0'
+
+# 基础
 uci set wireless.radio0.country='CN'
+uci set wireless.radio0.channel='6'           # 🔥 固定信道
 uci set wireless.radio0.htmode='HT20'
 uci set wireless.radio0.hwmode='11g'
-uci set wireless.radio0.txpower=18
-uci set wireless.radio0.ampdu=0
-uci set wireless.radio0.wmm=1
 
-# 提交配置
+# 稳定优先
+uci set wireless.radio0.txpower='20'
+uci set wireless.radio0.ampdu='0'
+uci set wireless.radio0.wmm='1'
+
+# 穿墙增强
+uci set wireless.radio0.beacon_int='100'
+uci set wireless.radio0.distance='50'
+uci set wireless.radio0.short_preamble='1'
+
+# =============================
+# 应用
+# =============================
 uci commit wireless
+wifi reload
 
 exit 0

@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# 主WiFi（高性能）
+
+uci set wireless.@wifi-iface[0].ssid='Home-5G'
+uci set wireless.@wifi-iface[0].encryption='sae-mixed'
+
+# IoT WiFi（门锁专用）
+
+uci add wireless wifi-iface
+uci set wireless.@wifi-iface[-1].device='radio0'
+uci set wireless.@wifi-iface[-1].mode='ap'
+uci set wireless.@wifi-iface[-1].ssid='Home-IoT'
+uci set wireless.@wifi-iface[-1].encryption='psk2'
+uci set wireless.@wifi-iface[-1].key='12345678'
+uci set wireless.@wifi-iface[-1].ieee80211w='0'
+
+# 强制兼容模式（关键）
+
+uci set wireless.radio0.htmode='HT20'
+uci set wireless.radio0.hwmode='11g'
+
+uci commit wireless
+wifi reload
+
+exit 0

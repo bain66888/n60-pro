@@ -1,4 +1,4 @@
-name: N60Pro OpenWrt Auto Build
+name: N60Pro OpenWrt Auto Build (Minimal)
 
 on:
   workflow_dispatch:
@@ -8,9 +8,13 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # 安装依赖
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/local/share/boost /usr/local/lib/node_modules
+
       - name: Install dependencies
         run: |
           sudo apt update
@@ -18,75 +22,59 @@ jobs:
           gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev \
           python3-distutils rsync unzip zlib1g-dev file wget python3 python3-pip
 
-      # 克隆源码
       - name: Clone source
         run: |
           git clone https://github.com/padavanonly/immortalwrt-mt798x-24.10 openwrt
 
-      # 删除有问题包
       - name: Remove problematic packages
-        run: rm -rf openwrt/package/emortal || true
+        run: |
+          rm -rf openwrt/package/emortal || true
 
-      # 更新 feeds
       - name: Feeds update & install
         run: |
           cd openwrt
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      # 复制配置文件
       - name: Load config
-        run: cp .config openwrt/.config
+        run: |
+          cp .config openwrt/.config
 
-      # 修复 MTK ETH 问题
-      - name: Fix MTK ETH compile issue
+      - name: Fix MTK ETH issue
         run: |
           cd openwrt
           sed -i 's/CONFIG_MTK_ETH=y/# CONFIG_MTK_ETH is not set/' .config || true
           sed -i 's/CONFIG_NET_MEDIATEK_SOC=y/# CONFIG_NET_MEDIATEK_SOC is not set/' .config || true
 
-      # 强制 WiFi 内建
       - name: Force WiFi built-in
         run: |
           cd openwrt
-          sed -i 's/CONFIG_MTK_MT_WIFI=m/CONFIG_MTK_MT_WIFI=y/' .config
-          sed -i 's/CONFIG_MTK_WIFI_MODE_AP=m/CONFIG_MTK_WIFI_MODE_AP=y/' .config
+          sed -i 's/CONFIG_MTK_MT_WIFI=m/CONFIG_MTK_MT_WIFI=y/' .config || true
+          sed -i 's/CONFIG_MTK_WIFI_MODE_AP=m/CONFIG_MTK_WIFI_MODE_AP=y/' .config || true
 
-      # defconfig
       - name: Defconfig
         run: |
           cd openwrt
           make defconfig
 
-      # 下载依赖
-      - name: Download dependencies
+      - name: Download
         run: |
           cd openwrt
           make download -j4
 
-      # 编译
       - name: Compile
         run: |
           cd openwrt
           make -j2 || make -j1 V=sc
 
-      # 删除文件名非法的文件
-      - name: Clean invalid files
+      - name: Clean invalid filenames
+        if: always()
         run: |
-          find openwrt -type f -name "*:*" -delete
+          find openwrt -type f -name "*:*" -delete || true
 
-      # 打包 bin 文件
-      - name: Pack firmware
-        run: |
-          cd openwrt
-          mkdir -p bin/firmware
-          find ./bin/targets/ -type f -name "*.bin" -exec cp {} bin/firmware/ \;
-          cd bin/firmware
-          zip -r firmware.zip *.bin
-
-      # 上传固件
       - name: Upload firmware
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: firmware
-          path: openwrt/bin/firmware/firmware.zip
+          path: openwrt/bin/targets/**/*.bin

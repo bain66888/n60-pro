@@ -1,4 +1,4 @@
-name: N60Pro OpenWrt Auto Build (Minimal)
+name: N60Pro OpenWrt Auto Build
 
 on:
 workflow_dispatch:

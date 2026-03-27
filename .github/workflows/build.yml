@@ -48,7 +48,7 @@ jobs:
         run: |
           cp .config openwrt/.config
 
-      # 🔥 修复 MTK 以太网编译炸裂问题（重点！！！）
+      # 🔥 修复 MTK 以太网编译问题
       - name: Fix MTK ETH compile issue
         run: |
           cd openwrt
@@ -72,13 +72,37 @@ jobs:
           cd openwrt
           make download -j4
 
-      # 🔥 编译（更稳策略）
+      # 🔥 编译
       - name: Compile
         run: |
           cd openwrt
           make -j2 || make -j1 V=sc
 
-      # 📦 日志
+      # 🔥 打包固件（关键）
+      - name: Pack firmware
+        run: |
+          cd openwrt
+          mkdir -p bin
+
+          echo "==== 查找固件 ===="
+          find bin/targets/ -type f -name "*.bin"
+
+          # 收集所有固件
+          find bin/targets/ -type f \( -name "*.bin" -o -name "*.img" \) -exec cp {} bin/ \;
+
+          cd bin
+          echo "==== 当前固件 ===="
+          ls -lh
+
+          # 防止空包
+          if [ -z "$(ls *.bin 2>/dev/null)" ]; then
+            echo "❌ 没有找到固件，编译可能失败"
+            exit 1
+          fi
+
+          zip -r firmware.zip *.bin *.img
+
+      # 📦 上传日志（不影响固件）
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -89,10 +113,10 @@ jobs:
             openwrt/logs
             openwrt/tmp
 
-      # 📦 固件
+      # 📦 上传固件（稳定版）
       - name: Upload firmware
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: firmware
-          path: openwrt/bin/targets/
+          path: openwrt/bin/firmware.zip

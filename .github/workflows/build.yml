@@ -140,4 +140,3 @@ steps:
     with:
       name: firmware
       path: openwrt/bin/targets/
-```

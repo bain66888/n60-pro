@@ -1,9 +1,0 @@
-config dnsmasq
-    option noresolv '1'
-    option cachesize '1000'
-
-config dhcp 'lan'
-    option interface 'lan'
-    option start '130'
-    option limit '50'
-    option leasetime '12h'

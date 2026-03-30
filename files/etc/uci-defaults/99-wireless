@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# 删除旧配置（关键）
+rm -f /etc/config/wireless
+
+# 重新生成基础配置
+wifi config
+
+# =============================
+# 5G 主力（穿墙 + 稳定）
+# =============================
+uci set wireless.radio1.country='CN'
+uci set wireless.radio1.channel='36'
+uci set wireless.radio1.htmode='HE160'
+uci set wireless.radio1.txpower='23'
+uci set wireless.radio1.noscan='1'
+uci set wireless.radio1.mu_beamformer='1'
+uci set wireless.radio1.txbf='1'
+uci set wireless.radio1.mu_mimo='1'
+
+uci set wireless.@wifi-iface[0].device='radio1'
+uci set wireless.@wifi-iface[0].mode='ap'
+uci set wireless.@wifi-iface[0].ssid='AAAA_5G'
+uci set wireless.@wifi-iface[0].encryption='sae-mixed'
+uci set wireless.@wifi-iface[0].key='12345678'
+uci set wireless.@wifi-iface[0].network='lan'
+
+# =============================
+# 2.4G IoT + 穿墙补充
+# =============================
+uci add wireless wifi-iface
+uci set wireless.@wifi-iface[-1].device='radio0'
+uci set wireless.@wifi-iface[-1].mode='ap'
+uci set wireless.@wifi-iface[-1].ssid='AAAA'
+uci set wireless.@wifi-iface[-1].encryption='psk2'
+uci set wireless.@wifi-iface[-1].key='12345678'
+uci set wireless.@wifi-iface[-1].network='lan'
+
+uci set wireless.radio0.country='CN'
+uci set wireless.radio0.channel='auto'
+uci set wireless.radio0.htmode='HT20'
+uci set wireless.radio0.txpower='20'
+uci set wireless.radio0.noscan='0'
+
+# 应用配置
+uci commit wireless
+wifi reload

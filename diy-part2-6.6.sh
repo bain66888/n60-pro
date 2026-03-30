@@ -19,5 +19,8 @@
 # Modify hostname
 #sed -i 's/OpenWrt/P3TERX-Router/g' package/base-files/files/bin/config_generate
 
-# ===================== 已删除所有组播防火墙规则 =====================
-# 你已关闭组播插件 + 使用纯 nftables 防火墙，无需保留旧防火墙规则
+# ===================== WiFi 功率解锁（闭源驱动专用，不报错） =====================
+# 仅设置默认国家码为 CN，自动解锁合规最大功率，不修改驱动
+sed -i 's/regdomain=.*/regdomain=CN/' package/mtk/applications/mtwifi-cfg/files/mt_wifi.ini 2>/dev/null
+
+# ===================== 组播/防火墙规则已清理 =====================

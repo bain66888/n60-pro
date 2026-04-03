@@ -9,8 +9,8 @@
 # This is free software, licensed under the MIT License.
 # See /LICENSE for more information.
 #
-
-name: immortalwrt-mt798x-6.6-builder
+mm
+name: n60pro-6.6-builder
 
 on:
   repository_dispatch:

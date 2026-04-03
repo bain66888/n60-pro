@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 mm
-name: n60pro-6.6-builder
+name: n60pro6.6-builder.yml
 
 on:
   repository_dispatch:
@@ -26,7 +26,7 @@ env:
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
-  FIRMWARE_TAG: n60pro-mt798x-6.6
+  FIRMWARE_TAG: n60pro-6.6
   TZ: Asia/Shanghai
 
 jobs:
